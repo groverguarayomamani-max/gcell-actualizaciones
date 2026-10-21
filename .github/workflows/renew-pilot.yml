@@ -1,0 +1,26 @@
+name: Renew approved pilot metadata
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '17 6 * * *'
+permissions:
+  contents: read
+concurrency:
+  group: pilot-metadata
+  cancel-in-progress: false
+jobs:
+  renew:
+    if: github.repository == 'groverguarayomamani-max/gcell-actualizaciones' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - run: python -m pip install --disable-pip-version-check cryptography==50.0.2
+      - run: python renew_github.py
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GCELL_SIGNING_KEY_PEM: ${{ secrets.GCELL_SIGNING_KEY_PEM }}
