@@ -1,4 +1,4 @@
-import os,json,subprocess,tempfile,hashlib,datetime
+import os,json,subprocess,tempfile,hashlib,datetime,base64
 from pathlib import Path
 from cryptography.hazmat.primitives import serialization
 from refresh_metadata import renew
@@ -18,4 +18,13 @@ with tempfile.TemporaryDirectory() as td:
  data,sig=renew((d/'release.json').read_bytes(),(d/'release.sig').read_bytes(),Path('production-public.pem').read_bytes(),key,approved,datetime.datetime.now(datetime.timezone.utc))
  (d/'release.json').write_bytes(data);(d/'release.sig').write_bytes(sig)
  subprocess.run(['gh','release','upload','pilot',str(d/'release.json'),str(d/'release.sig'),'--clobber','--repo',repo],check=True)
+ # Record only public channel status. This is repository activity, keeping a
+ # free public scheduled workflow from silently becoming inactive. No build,
+ # target promotion, business source or user data is committed.
+ endpoint='repos/'+repo+'/contents/channel-health.json'
+ prior=subprocess.run(['gh','api',endpoint],capture_output=True)
+ payload=dict(message='Record successful renewal of the same approved pilot',branch='main',content=base64.b64encode(json.dumps(dict(checkedUtc=datetime.datetime.now(datetime.timezone.utc).isoformat(),sequence=approved['Sequence'],sha256=approved['Sha256'],versionTag=approved['VersionTag'],packagePromoted=False),indent=2).encode()).decode())
+ if prior.returncode==0:payload['sha']=json.loads(prior.stdout)['sha']
+ elif b'404' not in prior.stderr:raise RuntimeError('Cannot inspect public channel status')
+ subprocess.run(['gh','api',endpoint,'--method','PUT','--input','-'],input=json.dumps(payload).encode(),check=True,stdout=subprocess.DEVNULL)
  print('Same approved package: signed freshness renewed. No package promotion.')
