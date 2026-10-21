@@ -1,9 +1,9 @@
 {
   "Schema": 1,
   "Channel": "gcell-ventas-pilot",
-  "Sequence": 1,
+  "Sequence": 2,
   "Archive": "piloto.zip",
-  "Sha256": "671e07a8da6093579338e8ce761bcc589bec7b64ef812f11117fee951f58e79d",
-  "Bytes": 86770730,
-  "VersionTag": "ventas-1.0.34-offline-pilot.1"
+  "Sha256": "da3f2a56e7519a9253c125f55a696f10b773b806a5b1d15db5e4e4ca2c71d0f2",
+  "Bytes": 93681281,
+  "VersionTag": "ventas-1.0.34-offline-pilot.2"
 }
